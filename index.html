@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iPhone AU Roleplay Simulator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box; margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #080c14; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden; color: #fff;
+        }
+
+        /* Container Frame iPhone 15/16 Pro */
+        .iphone-frame {
+            width: 393px; height: 852px;
+            border-radius: 55px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 0 12px #2d2d2d, 0 0 0 14px #4a4a4a;
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            background-size: cover; background-position: center; transition: background 0.3s ease;
+        }
+
+        /* Dynamic Island */
+        .dynamic-island {
+            position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 35px; background-color: #000; border-radius: 20px;
+            z-index: 2000; transition: all 0.3s ease; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 12px;
+        }
+
+        /* Status Bar iOS */
+        .status-bar {
+            position: absolute; top: 0; left: 0; width: 100%; height: 50px;
+            display: flex; justify-content: space-between; align-items: flex-end;
+            padding: 0 28px 10px 28px; font-size: 14px; font-weight: 600;
+            z-index: 1999; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        }
+        .status-right { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+
+        /* Bottom Home Bar Indicator */
+        .home-indicator {
+            position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+            width: 140px; height: 5px; background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 10px; z-index: 2001; cursor: pointer; transition: background 0.2s;
+        }
+        .home-indicator:hover { background-color: #fff; }
+
+        /* Screens Manager */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; transition: opacity 0.35s ease, transform 0.35s ease;
+            opacity: 0; pointer-events: none; transform: scale(0.95);
+        }
+        .screen.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+        /* ---------------- 1. LOCK SCREEN ---------------- */
+        #lock-screen {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.45));
+            padding-top: 60px; display: flex; flex-direction: column; align-items: center;
+        }
+        .lock-date { font-size: 19px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .lock-time { font-size: 82px; font-weight: 700; line-height: 1; margin-top: -5px; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+
+        /* Real Animated Notifications */
+        .notifications-container {
+            width: 90%; margin-top: 30px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .notification {
+            background: rgba(30, 30, 30, 0.65); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border-radius: 20px; padding: 12px 16px; border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+            opacity: 0; transform: translateY(60px) scale(0.9);
+            animation: iosNotifSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            cursor: pointer;
+        }
+
+        @keyframes iosNotifSlideUp {
+            0% { opacity: 0; transform: translateY(60px) scale(0.85); }
+            60% { opacity: 0.9; transform: translateY(-4px) scale(1.02); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .notif-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; color: rgba(255, 255, 255, 0.8); }
+        .notif-icon { width: 18px; height: 18px; background: #25D366; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; }
+        .notif-title { font-weight: 600; color: #fff; font-size: 15px; }
+        .notif-body { font-size: 14px; color: #e2e8f0; line-height: 1.3; }
+
+        .lock-bottom { margin-top: auto; margin-bottom: 35px; width: 100%; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; }
+        .quick-action-btn { width: 50px; height: 50px; border-radius: 50%; background: rgba(30, 30, 30, 0.6); backdrop-filter: blur(15px); display: flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .swipe-hint { font-size: 13px; color: rgba(255, 255, 255, 0.85); font-weight: 500; animation: pulse 2s infinite; cursor: pointer; }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* ---------------- 2. PASSCODE SCREEN ---------------- */
+        #passcode-screen {
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
+            padding-top: 100px; display: flex; flex-direction: column; align-items: center;
+        }
+        .passcode-title { font-size: 20px; font-weight: 500; margin-bottom: 25px; }
+        .passcode-dots { display: flex; gap: 18px; margin-bottom: 50px; }
+        .dot { width: 13px; height: 13px; border-radius: 50%; border: 2px solid #fff; transition: background 0.2s; }
+        .dot.filled { background-color: #fff; }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px 30px; }
+        .key-btn {
+            width: 75px; height: 75px; border-radius: 50%; background: rgba(255, 255, 255, 0.15);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1); transition: background 0.15s;
+        }
+        .key-btn:active { background: rgba(255, 255, 255, 0.4); }
+        .key-num { font-size: 32px; font-weight: 400; line-height: 1; }
+        .key-letters { font-size: 10px; font-weight: 600; letter-spacing: 2px; margin-top: 2px; }
+        .passcode-footer { margin-top: auto; margin-bottom: 40px; width: 100%; padding: 0 40px; display: flex; justify-content: space-between; font-size: 15px; }
+
+        /* ---------------- 3. HOME SCREEN (PRECISE LIKE SAMPLE) ---------------- */
+        #home-screen { padding: 60px 18px 20px 18px; }
+        .widgets-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 22px; }
+        .widget {
+            border-radius: 22px; padding: 16px; height: 155px;
+            display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        
+        /* Calendar Widget */
+        .calendar-widget { background: #ffffff; color: #000; }
+        .cal-header { color: #ef4444; font-size: 14px; font-weight: 600; }
+        .cal-date { font-size: 38px; font-weight: 700; line-height: 1; margin-top: 2px; }
+        .cal-event { margin-top: auto; border-left: 3px solid #c084fc; padding-left: 8px; }
+        .cal-event-title { font-size: 12px; font-weight: 700; color: #1e293b; line-height: 1.2; }
+        .cal-event-time { font-size: 10px; color: #64748b; margin-top: 2px; }
+
+        /* Weather Widget */
+        .weather-widget { background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%); color: #fff; }
+        .weather-loc { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .weather-temp { font-size: 36px; font-weight: 300; margin-top: 2px; }
+        .weather-desc { font-size: 11px; margin-top: auto; font-weight: 500; }
+
+        /* Apps Grid */
+        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 12px; justify-items: center; }
+        .app-icon-wrapper { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; width: 72px; }
+        .app-icon {
+            width: 62px; height: 62px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: transform 0.15s;
+        }
+        .app-icon:active { transform: scale(0.9); }
+        .app-icon-wrapper span { font-size: 11px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.8); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+        /* Search Bar Pill */
+        .search-pill-container { display: flex; justify-content: center; margin-top: 140px; }
+        .search-pill {
+            background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        /* Dock iOS */
+        .dock {
+            position: absolute; bottom: 25px; left: 16px; right: 16px; height: 90px;
+            background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-radius: 35px; display: flex; align-items: center; justify-content: space-around; padding: 0 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* App Themes */
+        .icon-wa { background: linear-gradient(135deg, #25D366, #128C7E); color: white; }
+        .icon-ig { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%,#d6249f 60%,#285AEB 90%); color: white; }
+        .icon-tiktok { background: #000; color: white; }
+        .icon-x { background: #000; color: white; }
+        .icon-photos { background: #fff; color: #ea580c; }
+        .icon-safari { background: #fff; color: #0284c7; }
+        .icon-notes { background: #fef08a; color: #ca8a04; }
+        .icon-calc { background: #171717; color: #f97316; }
+        .icon-settings { background: linear-gradient(135deg, #94a3b8, #475569); color: white; }
+        .icon-phone { background: #22c55e; color: white; }
+        .icon-music { background: linear-gradient(135deg, #fa233b, #fb5c74); color: white; }
+        .icon-msg { background: #22c55e; color: white; }
+        .icon-admin { background: #6366f1; color: white; }
+
+        /* ---------------- APP OVERLAYS ---------------- */
+        .app-screen { background-color: #000; z-index: 500; }
+        .app-header {
+            height: 90px; background: #121212; padding: 45px 15px 10px 15px;
+            display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #222;
+        }
+        .app-title { font-size: 17px; font-weight: 600; }
+        .back-btn { color: #0a84ff; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+        /* WhatsApp App Internal */
+        .wa-list { flex: 1; overflow-y: auto; background: #111b21; }
+        .wa-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-bottom: 1px solid #202c33; cursor: pointer; }
+        .wa-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #333; }
+        .wa-info { flex: 1; }
+        .wa-name { font-size: 16px; font-weight: 600; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .wa-time { font-size: 12px; color: #8696a0; font-weight: 400; }
+        .wa-lastmsg { font-size: 14px; color: #8696a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 230px; }
+
+        .chat-container { flex: 1; background: #0b141a; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 75%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; position: relative; }
+        .message.received { background: #202c33; align-self: flex-start; border-top-left-radius: 2px; }
+        .message.sent { background: #005c4b; align-self: flex-end; border-top-right-radius: 2px; }
+        .chat-input-bar { height: 60px; background: #1e2428; display: flex; align-items: center; padding: 0 10px; gap: 10px; margin-bottom: 15px; }
+        .chat-input { flex: 1; height: 38px; background: #2a3942; border: none; border-radius: 20px; padding: 0 15px; color: #fff; outline: none; }
+        .send-btn { color: #00a884; font-size: 20px; cursor: pointer; }
+
+        /* Photos Internal */
+        .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; flex: 1; overflow-y: auto; background: #000; }
+        .photo-item { width: 100%; height: 125px; object-fit: cover; cursor: pointer; }
+
+        /* Admin / Editor Screen */
+        .admin-content { flex: 1; overflow-y: auto; padding: 20px; background: #121212; display: flex; flex-direction: column; gap: 15px; }
+        .admin-group { background: #1e1e1e; padding: 15px; border-radius: 12px; border: 1px solid #333; }
+        .admin-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; }
+        .admin-input { width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px; color: #fff; margin-bottom: 10px; }
+        .admin-btn { padding: 10px 15px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="iphone-frame" id="iphone-body">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span id="current-time">19:07</span>
+            <div class="status-right">
+                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Dynamic Island -->
+        <div class="dynamic-island"></div>
+
+        <!-- 1. LOCK SCREEN -->
+        <div class="screen active" id="lock-screen">
+            <div class="lock-date" id="lock-date">Jumat, 23 Oktober</div>
+            <div class="lock-time" id="lock-clock">19:07</div>
+
+            <div class="notifications-container" id="notif-container">
+                <!-- Notifications with real movement injected via JS -->
+            </div>
+
+            <div class="lock-bottom">
+                <div class="quick-action-btn"><i class="fa-solid fa-flashlight"></i></div>
+                <div class="swipe-hint" onclick="openPasscode()">Geser / Klik untuk Membuka</div>
+                <div class="quick-action-btn"><i class="fa-solid fa-camera"></i></div>
+            </div>
+        </div>
+
+        <!-- 2. PASSCODE SCREEN -->
+        <div class="screen" id="passcode-screen">
+            <div class="passcode-title">Masukkan Kode Sandi</div>
+            <div class="passcode-dots">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div class="keypad">
+                <div class="key-btn" onclick="pressKey('1')"><span class="key-num">1</span></div>
+                <div class="key-btn" onclick="pressKey('2')"><span class="key-num">2</span><span class="key-letters">ABC</span></div>
+                <div class="key-btn" onclick="pressKey('3')"><span class="key-num">3</span><span class="key-letters">DEF</span></div>
+                <div class="key-btn" onclick="pressKey('4')"><span class="key-num">4</span><span class="key-letters">GHI</span></div>
+                <div class="key-btn" onclick="pressKey('5')"><span class="key-num">5</span><span class="key-letters">JKL</span></div>
+                <div class="key-btn" onclick="pressKey('6')"><span class="key-num">6</span><span class="key-letters">MNO</span></div>
+                <div class="key-btn" onclick="pressKey('7')"><span class="key-num">7</span><span class="key-letters">PQRS</span></div>
+                <div class="key-btn" onclick="pressKey('8')"><span class="key-num">8</span><span class="key-letters">TUV</span></div>
+                <div class="key-btn" onclick="pressKey('9')"><span class="key-num">9</span><span class="key-letters">WXYZ</span></div>
+                <div class="key-btn" style="visibility: hidden;"></div>
+                <div class="key-btn" onclick="pressKey('0')"><span class="key-num">0</span></div>
+                <div class="key-btn" onclick="deletePin()"><i class="fa-solid fa-delete-left"></i></div>
+            </div>
+
+            <div class="passcode-footer">
+                <span onclick="goLockScreen()">Darurat</span>
+                <span onclick="goLockScreen()">Batal</span>
+            </div>
+        </div>
+
+        <!-- 3. HOME SCREEN -->
+        <div class="screen" id="home-screen">
+            <div class="widgets-container">
+                <!-- Calendar Widget -->
+                <div class="widget calendar-widget">
+                    <div>
+                        <div class="cal-header">Kamis</div>
+                        <div class="cal-date">22</div>
+                    </div>
+                    <div class="cal-event">
+                        <div class="cal-event-title">anter sayangku beli make up</div>
+                        <div class="cal-event-time">10.00</div>
+                    </div>
+                </div>
+
+                <!-- Weather Widget -->
+                <div class="widget weather-widget">
+                    <div>
+                        <div class="weather-loc">Bandung <i class="fa-solid fa-location-arrow" style="font-size:10px;"></i></div>
+                        <div class="weather-temp">26°</div>
+                    </div>
+                    <div class="weather-desc">
+                        Cerah Berawan<br>T:33° R:25°
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apps Grid -->
+            <div class="app-grid">
+                <div class="app-icon-wrapper" onclick="openApp('app-photos')">
+                    <div class="app-icon icon-photos"><i class="fa-regular fa-image"></i></div>
+                    <span>Foto</span>
+                </div>
+                <div class="app-icon-wrapper" onclick="alert('Membuka Kalender...')">
+                    <div class="app-icon" style="background:#fff; color:#000;"><span style="font-weight:700; font-size:20px; color:#ef4444;">22</span></div>
+                    <span>Kalender</span>
+                </div>
+                <div class="app-icon-wrapper" onclick="alert('Membuka Catatan...')">
+                    <div class="app-icon icon-notes"><i class="fa-solid fa-note-sticky"></i></div>
+                    <span>Catatan</span>
+                </div>
+                <div class="app-icon-wrapper" onclick="openApp('app-admin')">
+                    <div class="app-icon icon-settings"><i class="fa-solid fa-gear"></i></div>
+                    <span>Pengaturan</span>
+                </div>
+            </div>
+
+            <!-- Search Pill Bar -->
+            <div class="search-pill-container">
+                <div class="search-pill">
+                    <i class="fa-solid fa-magnifying-glass"></i> Cari
+                </div>
+            </div>
+
+            <!-- Dock Bar -->
+            <div class="dock">
+                <div class="app-icon-wrapper" onclick="alert('Membuka Telepon...')">
+                    <div class="app-icon icon-phone"><i class="fa-solid fa-phone"></i></div>
